@@ -19,6 +19,7 @@ provider "helm" {
 module "argocd" {
   source        = "./modules/argocd"
   version_chart = var.version_argocd
+  depot         = var.depot
 }
 
 # Les ressources ont changé d'adresse en passant dans des modules. Les blocs

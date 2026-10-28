@@ -7,3 +7,8 @@ variable "version_argocd" {
   type        = string
   description = "Version du chart Helm argo-cd."
 }
+
+variable "depot" {
+  type        = string
+  description = "URL HTTPS du dépôt git surveillé par ArgoCD."
+}
