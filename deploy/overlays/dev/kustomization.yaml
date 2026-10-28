@@ -4,9 +4,10 @@ kind: Kustomization
 namespace: dev
 
 resources:
-  - ../../base
-  - api-secret-scelle.yaml
+- ../../base
+- api-secret-scelle.yaml
 
 images:
-  - name: api
-    newTag: initial
+- name: api
+  newName: ghcr.io/fcbtn/devops-avance
+  newTag: a0f35829
