@@ -2,7 +2,7 @@
 
 module "cluster" {
   source = "./modules/cluster"
-  nom    = "plateforme"
+  nom    = var.nom_cluster
 }
 
 # Le provider Helm se connecte au cluster déclaré par le module cluster,
@@ -18,7 +18,7 @@ provider "helm" {
 
 module "argocd" {
   source        = "./modules/argocd"
-  version_chart = "10.10.3"
+  version_chart = var.version_argocd
 }
 
 # Les ressources ont changé d'adresse en passant dans des modules. Les blocs
