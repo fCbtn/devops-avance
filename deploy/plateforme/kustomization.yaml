@@ -5,3 +5,4 @@ resources:
   - admission-limites.yaml
   - podmonitor-api.yaml
   - alerte-budget-erreur.yaml
+  - dashboard-red.yaml

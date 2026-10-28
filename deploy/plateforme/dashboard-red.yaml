@@ -1,0 +1,44 @@
+# Dashboard RED (Rate, Errors, Duration) de l'API, chargé par le sidecar de
+# Grafana grâce au label grafana_dashboard.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-red-api
+  namespace: supervision
+  labels:
+    grafana_dashboard: "1"
+data:
+  red-api.json: |
+    {
+      "title": "RED - API",
+      "uid": "red-api",
+      "schemaVersion": 39,
+      "editable": true,
+      "time": { "from": "now-30m", "to": "now" },
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "Rate - requêtes par seconde",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+          "targets": [
+            { "expr": "sum(rate(http_requests_total[5m]))", "legendFormat": "req/s" }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Errors - part des réponses 5xx",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+          "targets": [
+            { "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))", "legendFormat": "ratio 5xx" }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Duration - latence (p95)",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+          "targets": [
+            { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95" }
+          ]
+        }
+      ]
+    }
