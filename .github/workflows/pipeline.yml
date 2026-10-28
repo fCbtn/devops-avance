@@ -1,0 +1,56 @@
+name: pipeline
+
+# Se déclenche uniquement sur un push sur main qui modifie app/.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+
+permissions:
+  contents: write # pour pousser le commit du nouveau tag
+  packages: write # pour pousser l'image dans ghcr.io
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupère le dépôt
+        uses: actions/checkout@v4
+
+      - name: Calcule le nom d'image (minuscules) et le tag (8 car. du commit)
+        id: meta
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+
+      - name: Connexion à ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construit et pousse l'image
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          push: true
+          tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+
+      - name: Installe kustomize
+        run: |
+          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo install -m0755 kustomize /usr/local/bin/kustomize
+
+      - name: Écrit le nouveau tag dans l'overlay dev
+        working-directory: deploy/overlays/dev
+        run: kustomize edit set image api=${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+
+      - name: Commite et pousse le tag (auteur pipeline-ci)
+        run: |
+          git config user.name pipeline-ci
+          git config user.email pipeline-ci@users.noreply.github.com
+          git add deploy/overlays/dev/kustomization.yaml
+          git diff --cached --quiet || git commit -m "Déploie l'image ${{ steps.meta.outputs.tag }} en dev"
+          git push
