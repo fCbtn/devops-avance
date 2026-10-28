@@ -18,6 +18,12 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          envFrom:
+            # Le secret n'existe qu'en dev (scellé dans l'overlay dev) ; en prod
+            # il est absent, d'où optional: true pour ne pas bloquer le démarrage.
+            - secretRef:
+                name: api-secret
+                optional: true
           readinessProbe:
             httpGet:
               path: /healthz
