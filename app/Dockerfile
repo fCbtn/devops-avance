@@ -1,5 +1,5 @@
-# Image de base volontairement ancienne : elle sera corrigée plus tard dans le cours.
-FROM python:3.9-slim-buster
+# Image de base à jour : corrige les vulnérabilités que le scan Trivy bloque.
+FROM python:3.13-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
