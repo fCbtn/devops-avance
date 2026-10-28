@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plateforme
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/fCbtn/devops-avance.git
+    targetRevision: main
+    path: deploy/plateforme
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: supervision
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    # Les PodMonitor/PrometheusRule dépendent des CRD du chart de supervision :
+    # on réessaie tant que l'opérateur n'a pas installé ses CRD.
+    retry:
+      limit: 10
+      backoff:
+        duration: 20s
+        maxDuration: 3m
