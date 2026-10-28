@@ -31,12 +31,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Construit et pousse l'image
+      - name: Construit l'image (chargée en local pour le scan)
         uses: docker/build-push-action@v6
         with:
           context: app
-          push: true
+          load: true
           tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+
+      - name: Installe Trivy
+        run: curl -sSL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: Scan Trivy bloquant (échoue sur une vulnérabilité CRITICAL corrigeable)
+        run: trivy image --severity CRITICAL --ignore-unfixed --exit-code 1 ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+
+      - name: Pousse l'image (uniquement si le scan passe)
+        run: docker push ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
 
       - name: Installe kustomize
         run: |
