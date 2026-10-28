@@ -1,0 +1,21 @@
+# SLO de l'API : l'alerte se déclenche quand le taux d'erreurs 5xx dépasse le
+# budget d'erreur. Le vérificateur injecte 100 % d'erreurs ; l'alerte doit
+# alors passer "firing" en moins de quatre minutes.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: budget-erreur-api
+  namespace: supervision
+spec:
+  groups:
+    - name: slo-api
+      rules:
+        - alert: BudgetErreurApi
+          expr: |
+            sum(rate(http_requests_total{status=~"5.."}[1m]))
+              / sum(rate(http_requests_total[1m])) > 0.1
+          for: 30s
+          labels:
+            severity: page
+          annotations:
+            summary: "Budget d'erreur de l'API dépassé (trop de réponses 5xx)"

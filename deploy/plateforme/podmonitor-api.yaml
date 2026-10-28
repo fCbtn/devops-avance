@@ -1,0 +1,17 @@
+# Prometheus scrape les pods de l'API (dev et prod) sur leur port http, /metrics.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: api
+  namespace: supervision
+spec:
+  namespaceSelector:
+    matchNames:
+      - dev
+      - prod
+  selector:
+    matchLabels:
+      app: api
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
